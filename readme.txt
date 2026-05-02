@@ -1,3 +1,10 @@
+KM3L0TT Update - Further Enhancements
+=====================================
+- Night mode control via ON/OFF switch
+- Power down delay on LED outputs (prevents solenoid toy burnout)
+- Removed Real PWM implementation
+- Removed current limiting
+
 MEGA2560 / Xavier Hosxe note : 
 ===================
 My goal for this fork is to add the following features that i need for my pincab :
@@ -22,6 +29,7 @@ Supported Hardware
 ==================
 - Custom Breakout Board with ATMega32U2
 - Arduino Leonardo (ATMega32U4)
+- Arduino Pro Micro (ATMega32U4)
 - Arduino Mega 2560 (tested with Rev. 3)
 - Arduino Uno Rev. 2/3 (untested)
 
