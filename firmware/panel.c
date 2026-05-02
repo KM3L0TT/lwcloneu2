@@ -119,8 +119,9 @@ static const uint8_t adc_mux_table[NUM_ADC_CHANNELS] = {
 };
 #endif
 
-#ifdef KEY_MUTE_TOYS
-uint8_t muteToys = false;
+// [KM3L0TT] Mode Nuit - etat lu depuis l'interrupteur physique
+#ifdef NIGHT_SWITCH_PORT
+uint8_t nightMode = 0;
 #endif
 
 
@@ -312,22 +313,22 @@ void panel_init(void)
 	#ifdef ACCELGYRO_MPU6050
 	mpu6050_init();
 	#endif
+
+	/* [KM3L0TT] Interrupteur à bascule Mode Nuit
+	 * Init de la broche en entrée avec pull-up interne activée.
+	 * L'interrupteur doit être câblé entre la broche et la masse (GND).
+	 */
+	#ifdef NIGHT_SWITCH_PORT
+	PORT##NIGHT_SWITCH_PORT |= (1 << NIGHT_SWITCH_BIT);   // pull-up interne ON
+	DDR##NIGHT_SWITCH_PORT  &= ~(1 << NIGHT_SWITCH_BIT);  // broche en entrée
+	#endif
 };
 
 static void SetNeedUpdate(uint8_t index)
 {
 	uint8_t key = GetKey(index);
 
-	// Was already debounces 
-#ifdef KEY_MUTE_TOYS
-	uint8_t state = InputState[index];
-	DbgOut(DBGINFO, "Key %d / state 0x%x", key, state);
-	if (key == KEY_MUTE_TOYS && ((state & 0x80) > 1)) {
-		// We just release mute toys key, let's toglle muteToys
-		muteToys = muteToys == 0 ? 1 : 0;
-		DbgOut(DBGINFO, "Mute toys : %d", muteToys);
-	}
-#endif
+	// Was already debounced
 
 	if (IsConsumerCode(key))
 	{
@@ -646,6 +647,14 @@ void panel_ScanInput(void)
 	#define MAP(port, pin, normal_id, shift_id) SetInputCount(port##pin##_index, 0 == (PIN##port & (1 << pin)));
 	PANEL_MAPPING_TABLE(MAP)
 	#undef MAP
+
+	/* [KM3L0TT] Lecture de l'interrupteur à bascule Mode Nuit (active LOW avec pull-up)
+	 * Interrupteur FERMÉ → broche à GND → PIN bit = 0 → nightMode = 1 (mode nuit actif)
+	 * Interrupteur OUVERT → broche HIGH  → PIN bit = 1 → nightMode = 0 (mode nuit inactif)
+	 */
+	#ifdef NIGHT_SWITCH_PORT
+	nightMode = !(PIN##NIGHT_SWITCH_PORT & (1 << NIGHT_SWITCH_BIT));
+	#endif
 
 	#if (USE_MOUSE != 0)
 	CheckMouseUpdate();

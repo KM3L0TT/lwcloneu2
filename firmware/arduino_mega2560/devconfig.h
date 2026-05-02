@@ -29,9 +29,8 @@
 
 #define ENABLE_PANEL_DEVICE
 
-// See keydefs.h : KEY_M = 0x10
-// Mutable toys are the "leds" with a delay
-#define KEY_MUTE_TOYS 0x10
+// Note : le Mode Nuit est désormais géré par un interrupteur à bascule
+// physique dont la broche est définie dans pinmap.h (NIGHT_SWITCH_PORT / NIGHT_SWITCH_BIT).
 
 #define NUM_JOYSTICKS 0
 #define USE_MOUSE 0
