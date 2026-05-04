@@ -119,9 +119,18 @@ static const uint8_t adc_mux_table[NUM_ADC_CHANNELS] = {
 };
 #endif
 
-// [KM3L0TT] Mode Nuit - etat lu depuis l'interrupteur physique
-#ifdef NIGHT_SWITCH_PORT
+// [KM3L0TT] Mode Nuit - variable globale
+// Mise a jour dans panel_ScanInput() depuis switch physique et/ou serie
+// Lue dans led_toys_pwm.c pour couper les sorties marquees night=1
+#if defined(NIGHT_SWITCH_PORT) || defined(ESP32_SERIAL_BAUD)
 uint8_t nightMode = 0;
+#endif
+
+// [KM3L0TT] Variables recues depuis l'ESP32 via serial_esp32.c
+// nightModeSerial : valeur Mode Nuit recue via trame [0C AA 00/01]
+// debugModeSerial : active/desactive les trames debug serie
+#ifdef ESP32_SERIAL_BAUD
+#include "serial_esp32.h"
 #endif
 
 
@@ -648,12 +657,29 @@ void panel_ScanInput(void)
 	PANEL_MAPPING_TABLE(MAP)
 	#undef MAP
 
-	/* [KM3L0TT] Lecture de l'interrupteur à bascule Mode Nuit (active LOW avec pull-up)
-	 * Interrupteur FERMÉ → broche à GND → PIN bit = 0 → nightMode = 1 (mode nuit actif)
-	 * Interrupteur OUVERT → broche HIGH  → PIN bit = 1 → nightMode = 0 (mode nuit inactif)
+	/* [KM3L0TT] Calcul nightMode avec logique de priorite :
+	 *
+	 *  1. Switch physique FERME  -> nightMode = 1  (priorite absolue)
+	 *  2. nightModeSerial = 1   -> nightMode = 1  (si switch ouvert)
+	 *  3. Switch ouvert ET serial = 0 -> nightMode = 0
+	 *
+	 * Le switch physique peut TOUJOURS forcer le mode nuit, meme si
+	 * l'ESP32 envoie nightModeSerial=0 (ex: override web desactive).
+	 * En cas de reboot, le switch physique maintient le mode nuit
+	 * sans attendre la prochaine trame serie (500ms max).
+	 *
+	 * Sur ProMicro sans switch (NIGHT_SWITCH_PORT non defini) :
+	 *   nightMode = nightModeSerial uniquement
 	 */
-	#ifdef NIGHT_SWITCH_PORT
+	#if defined(NIGHT_SWITCH_PORT) && defined(ESP32_SERIAL_BAUD)
+	{
+		uint8_t switchClosed = !(PIN##NIGHT_SWITCH_PORT & (1 << NIGHT_SWITCH_BIT));
+		nightMode = switchClosed ? 1 : nightModeSerial;
+	}
+	#elif defined(NIGHT_SWITCH_PORT)
 	nightMode = !(PIN##NIGHT_SWITCH_PORT & (1 << NIGHT_SWITCH_BIT));
+	#elif defined(ESP32_SERIAL_BAUD)
+	nightMode = nightModeSerial;
 	#endif
 
 	#if (USE_MOUSE != 0)
@@ -1130,5 +1156,22 @@ ISR(ADC_vect)
 #endif
 
 
+
+/* [KM3L0TT] panel_get_input_state - expose les etats d'entrees pour serial_esp32_task()
+ * Appellee dans main_usb.c avec les tableaux locaux
+ * Copie InputState[] (etat physique) et le code HID resolu (normal ou shifted) */
+uint8_t panel_get_input_state(uint8_t *input_out, uint8_t *hid_out, uint8_t max_inputs)
+{
+#if !defined(PANEL_TASK)
+    return 0;
+#else
+    uint8_t n = (NUMBER_OF_INPUTS < max_inputs) ? NUMBER_OF_INPUTS : max_inputs;
+    for (uint8_t i = 0; i < n; i++) {
+        input_out[i] = IsKeyDown(i) ? 1 : 0;
+        hid_out[i]   = IsKeyDown(i) ? GetKey(i) : 0;
+    }
+    return n;
+#endif
+}
 
 #endif

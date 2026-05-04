@@ -31,6 +31,12 @@
 #include "comm.h"
 #include "led.h"
 #include "panel.h"
+/* [KM3L0TT] Communication serie ESP32 (active si ESP32_SERIAL_BAUD defini) */
+#include "serial_esp32.h"
+#include "led_toys_pwm.h"
+#if defined(USE_ACCELGYRO) && (USE_ACCELGYRO != 0)
+#include "mpu6050.h"
+#endif
 
 
 #define LWCCONFIG_CMD_SETID 65
@@ -84,6 +90,33 @@ int main(void)
 	{
 		USB_USBTask();
 		main_task();
+
+		/* [KM3L0TT] Tache serie ESP32 - non bloquante
+		 * Par defaut : heartbeat uniquement (500ms)
+		 * Si debugModeSerial=1 : envoie aussi sorties, entrees, HID, analog, gyro
+		 * Active uniquement si ESP32_SERIAL_BAUD defini dans devconfig.h */
+		#if defined(ESP32_SERIAL_BAUD)
+		{
+			static uint8_t pwm_buf[32];
+			static uint8_t inp_buf[16];
+			static uint8_t hid_buf[16];
+			int gx = 0, gy = 0;
+
+			uint8_t n_out = led_get_pwm_state(pwm_buf, 32);
+			uint8_t n_in  = panel_get_input_state(inp_buf, hid_buf, 16);
+
+			#if defined(USE_ACCELGYRO) && (USE_ACCELGYRO != 0)
+			mpu6050_ReadData(&gx, &gy);
+			#endif
+
+			/* plunger ADC : non expose directement ici
+			 * TODO : ajouter adc_get_plunger() si ADC active */
+			uint16_t plunger = 0;
+
+			serial_esp32_task(pwm_buf, n_out, inp_buf, hid_buf, n_in, plunger, gx, gy);
+		}
+		#endif
+
 		sleep_ms(0);
 	}
 }
@@ -118,6 +151,9 @@ static void hardware_init(void)
 	comm_init();
 	led_init();
 	panel_init();
+	/* [KM3L0TT] Init liaison serie ESP32 (UART1, non bloquant)
+	 * Active uniquement si ESP32_SERIAL_BAUD defini dans devconfig.h */
+	serial_esp32_init();
 
 	// config
 	configure_device();

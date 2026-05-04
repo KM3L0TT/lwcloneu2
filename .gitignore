@@ -9,6 +9,3 @@
 **/*.bin
 **/*.eep
 **/win32/
-firmware/arduino_leonardo/**
-firmware/arduino_uno/**
-firmware/breakout_32u2/**

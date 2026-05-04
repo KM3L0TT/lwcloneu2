@@ -46,3 +46,23 @@
 	_map_( F, 4, 0, 0, 0 ) /* A3 */ \
 	\
 	/* end */
+
+/*
+ * [KM3L0TT] Sorties LedWiz a envoyer en permanence via serie vers ESP32 Fronton
+ * ================================================================================
+ * Ces sorties sont transmises a l'ESP32 (ID 0x0F) meme si le mode debug est inactif.
+ * L'ESP32 Fronton les utilise pour piloter les LEDs adressables WS2812B
+ * (Beacon gyrophare, Fan, Knocker) avec les couleurs RGB definies par le DOF.
+ *
+ * Format : liste des numeros de sortie LedWiz (1-base), terminee par -1
+ *
+ * Exemple : sorties 1=Rouge, 2=Vert, 3=Bleu, 4=Beacon, 5=Fan, 6=Knocker
+ *   #define ADDR_FORCED_OUTPUTS { 1, 2, 3, 4, 5, 6, -1 }
+ *
+ * Logique couleur dans l'ESP32 Fronton :
+ *   Si R < seuil ET G < seuil ET B < seuil → couleur par defaut
+ *   Sinon → couleur RGB des sorties LedWiz
+ *
+ * Laisser commente si non utilise (aucune sortie forcee, debug uniquement).
+ */
+// #define ADDR_FORCED_OUTPUTS  { 1, 2, 3, 4, 5, 6, -1 }

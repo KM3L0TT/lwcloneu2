@@ -46,6 +46,13 @@ static const uint16_t DELTA_TIME_PANEL_REPORT_MS = 2;
 void panel_init(void);
 uint8_t panel_get_report(uint8_t **ppdata);
 
+/* [KM3L0TT] Copie l'etat des entrees et codes HID pour serial_esp32_task()
+ * input_out : 1=appuye / 0=relache pour chaque entree
+ * hid_out   : code HID resolu (normal ou shifted) pour chaque entree, 0=pas de code
+ * max_inputs : taille des tableaux fournis
+ * Retourne le nombre d'entrees copiees */
+uint8_t panel_get_input_state(uint8_t *input_out, uint8_t *hid_out, uint8_t max_inputs);
+
 
 
 #endif  // PANEL_H__INCLUDED

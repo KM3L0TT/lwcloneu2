@@ -124,6 +124,30 @@
  *
  * Interrupteur Mode Nuit - choisir une broche libre ci-dessus :
  */
+
+/*
+ * [KM3L0TT] Sorties LedWiz a envoyer en permanence via serie vers ESP32 Caisse
+ * ================================================================================
+ * Ces sorties sont transmises a l'ESP32 Caisse (ID 0x0C) meme si le mode debug
+ * est inactif. L'ESP32 Caisse peut ensuite les relayer via ESP-NOW broadcast
+ * vers l'ESP32 Fronton (ID 0x0F) qui pilote les LEDs adressables WS2812B.
+ *
+ * Exemple : le signal Knocker est sur la Mega mais necessaire a l'ESP32 Fronton
+ * pour l'animation beacon. Sans ADDR_FORCED_OUTPUTS, cette info n'est disponible
+ * que si le mode debug est actif.
+ *
+ * Format : liste des numeros de sortie LedWiz (1-base), terminee par -1
+ *
+ * Exemple : forcer l'envoi du Knocker (sortie 10) et du Strobe (sortie 11) :
+ *   #define ADDR_FORCED_OUTPUTS { 10, 11, -1 }
+ *
+ * Laisser commente si non utilise (aucune sortie forcee, debug uniquement).
+ *
+ * Note ESP-NOW : l'ESP32 Caisse relaie automatiquement les trames 0x10 recues
+ * en Serial vers l'ESP32 Fronton via ESP-NOW broadcast, avec l'ID source
+ * d'origine (0x1C) afin que le Fronton sache d'ou vient l'information.
+ */
+// #define ADDR_FORCED_OUTPUTS  { 10, -1 }   /* Exemple : Knocker = sortie 10 */
 #define NIGHT_SWITCH_PORT   K
 #define NIGHT_SWITCH_BIT    0
 

@@ -24,4 +24,9 @@ void led_update(uint8_t *p8bytes);
 unsigned long led_millis(void);
 void led_setBlinkTimer(uint16_t size, uint16_t onAt);
 
+/* [KM3L0TT] Copie les valeurs PWM courantes dans 'out' (max_leds entrees max)
+ * Retourne le nombre de sorties copiees
+ * Utilisee par serial_esp32_task() pour l'envoi des trames debug 0x10 */
+uint8_t led_get_pwm_state(uint8_t *out, uint8_t max_leds);
+
 #endif

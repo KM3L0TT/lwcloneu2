@@ -42,5 +42,27 @@
 // Does not work
 // #define ACCELGYRO_MPU6050_USE_FIFO 1
 
+
+/*
+ * [KM3L0TT] Communication Serie ESP32
+ * ======================================
+ * Decommenter ESP32_SERIAL_BAUD pour activer la liaison serie avec l'ESP32.
+ * UART1 utilise : D18=TX1 / D19=RX1 (partage avec DEBUGLEVEL si active)
+ *
+ * LEDWIZ_SERIAL_ID : identifiant de cette carte dans les trames serie
+ *   0x1C = LedWiz 1 Caisse (Mega)
+ *   0x2F = LedWiz 2 Fronton (ProMicro 1)
+ *   0x3F = LedWiz 3 Fronton (ProMicro 2)
+ *
+ * nightModeSerial : mode nuit recu depuis l'ESP32 [0C AA 00/01]
+ *   Priorite inferieure au switch physique NIGHT_SWITCH_PORT/BIT
+ *   Si switch ferme : nightMode=1 quelle que soit la valeur serie
+ *
+ * debugModeSerial : active l'envoi des trames debug [0C DD 00/01]
+ *   Par defaut (debug inactif) : seul heartbeat toutes les 500ms
+ *   Si actif : sorties PWM, entrees, HID, plunger, gyro (au changement)
+ */
+#define ESP32_SERIAL_BAUD  115200
+#define LEDWIZ_SERIAL_ID          0x1C
 #endif
 
